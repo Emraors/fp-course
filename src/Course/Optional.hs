@@ -97,11 +97,8 @@ instance P.Functor Optional where
     M.liftM
 
 instance A.Applicative Optional where
-  (<*>) =
-    M.ap
-  pure =
-    Full
+  (<*>) = M.ap
+  pure = Full
 
 instance P.Monad Optional where
-  (>>=) =
-    flip bindOptional
+  (>>=) = flip bindOptional

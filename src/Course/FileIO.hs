@@ -2,6 +2,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RebindableSyntax #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use tuple-section" #-}
 
 module Course.FileIO where
 
@@ -81,50 +83,41 @@ the contents of c
 
 -- Given the file name, and file contents, print them.
 -- Use @putStrLn@.
-printFile ::
-  FilePath
-  -> Chars
-  -> IO ()
-printFile =
-  error "todo: Course.FileIO#printFile"
+printFile :: FilePath -> Chars -> IO ()
+printFile filePath text = putStr "============ "
+  *> putStr filePath
+  *> putStr "\n"
+  *> putStr text
+
 
 -- Given a list of (file name and file contents), print each.
 -- Use @printFile@.
-printFiles ::
-  List (FilePath, Chars)
-  -> IO ()
-printFiles =
-  error "todo: Course.FileIO#printFiles"
+printFiles :: List (FilePath, Chars) -> IO ()
+printFiles Nil = putStr ""
+printFiles ((filePath,text):.xs) = printFile filePath text *> printFiles xs
+  --error "todo: Course.FileIO#printFiles"
+
 
 -- Given a file name, return (file name and file contents).
 -- Use @readFile@.
-getFile ::
-  FilePath
-  -> IO (FilePath, Chars)
-getFile =
-  error "todo: Course.FileIO#getFile"
+getFile :: FilePath -> IO (FilePath, Chars)
+getFile filePath = (\text -> (filePath, text)) <$> readFile filePath
+  -- Monadic solution: readFile filePath >>= (\text -> return (filePath, text))
+ -- error "todo: Course.FileIO#getFile"
 
 -- Given a list of file names, return list of (file name and file contents).
 -- Use @getFile@.
-getFiles ::
-  List FilePath
-  -> IO (List (FilePath, Chars))
-getFiles =
-  error "todo: Course.FileIO#getFiles"
+getFiles :: List FilePath -> IO (List (FilePath, Chars))
+getFiles list = sequence (getFile <$> list)
 
 -- Given a file name, read it and for each line in that file, read and print contents of each.
 -- Use @getFiles@, @lines@, and @printFiles@.
-run ::
-  FilePath
-  -> IO ()
-run =
-  error "todo: Course.FileIO#run"
+run :: FilePath -> IO ()
+run = printFiles <=< (getFiles . lines) <=< readFile
 
 -- /Tip:/ use @getArgs@ and @run@
-main ::
-  IO ()
-main =
-  error "todo: Course.FileIO#main"
+main :: IO ()
+main = getArgs >>= run . flatten
 
 ----
 
@@ -132,3 +125,8 @@ main =
 -- ? `sequence . (<$>)`
 -- ? `void . sequence . (<$>)`
 -- Factor it out.
+-- sequence :: Applicative k => List (k a) -> k (List a)
+-- sequence = foldRight (lift2 (:.)) (pure Nil)
+
+-- lift2 :: Applicative k => (a -> b -> c) -> k a -> k b -> k c
+-- (:.) :: a -> List a -> List a

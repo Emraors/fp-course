@@ -57,7 +57,7 @@ instance Applicative List where
   pure :: a -> List a
   pure a = a:.Nil
   (<*>) :: List (a -> b) -> List a -> List b
-  (<*>) lf la = flatMap (`map` la) lf
+  (<*>) lf la = flatMap (flip map la) lf
    -- error "todo: Course.Apply (<*>)#instance List"
 
 -- Note to my self. If we have a monad we can define an applicative instance in the following way.
@@ -81,7 +81,7 @@ instance Applicative Optional where
   pure :: a -> Optional a
   pure a = Full a
   (<*>) :: Optional (a -> b) -> Optional a -> Optional b
-  (<*>) og oa = bindOptional (`mapOptional` oa) og
+  (<*>) og oa = bindOptional (flip mapOptional oa) og
 
 
 -- | Insert into a constant function.

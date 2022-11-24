@@ -108,7 +108,7 @@ infixl 4 <**>
 -- >>> join (+) 7
 -- 14
 join :: Monad k => k (k a) -> k a
-join  mma = id =<< mma
+join mma = id =<< mma
 
 
 -- | Implement a flipped version of @(=<<)@, however, use only
@@ -118,7 +118,7 @@ join  mma = id =<< mma
 -- >>> ((+10) >>= (*)) 7
 -- 119
 (>>=) :: Monad k => k a -> (a -> k b) -> k b
-(>>=) = flip (=<<)
+(>>=) ka f = join (f <$> ka)
 
 
 infixl 1 >>=

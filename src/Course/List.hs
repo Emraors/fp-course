@@ -151,7 +151,7 @@ filter p = foldRight (\a b -> if p a then a:. b else b) Nil
 --
 -- prop> \x -> x ++ Nil == x
 (++) :: List a -> List a -> List a
-(++) xs ys = foldRight (\a b -> a:.b) ys xs
+(++) = flip (foldRight (:.))
 
 infixr 5 ++
 
@@ -166,7 +166,7 @@ infixr 5 ++
 --
 -- prop> \x -> sum (map length x) == length (flatten x)
 flatten :: List (List a) -> List a
-flatten = foldRight (\xs ys -> xs ++ ys) Nil
+flatten = foldRight (++) Nil
 
 -- | Map a function then flatten to a list.
 --

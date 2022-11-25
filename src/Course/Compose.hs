@@ -14,26 +14,26 @@ import Course.Contravariant
 newtype Compose f g a =
   Compose (f (g a)) deriving (Show, Eq)
 
+runCompose :: Compose f g a -> f (g a)
+runCompose (Compose h) = h
+
 -- Implement a Functor instance for Compose
 instance (Functor f, Functor g) =>
     Functor (Compose f g) where
-  (<$>) =
-    error "todo: Course.Compose (<$>)#instance (Compose f g)"
+  (<$>) h  = Compose . ((<$>) . (<$>) $ h) . runCompose
+   -- Compose (((<$>) . (<$>) $ h) x)
 
 instance (Applicative f, Applicative g) =>
   Applicative (Compose f g) where
 -- Implement the pure function for an Applicative instance for Compose
-  pure =
-    error "todo: Course.Compose pure#instance (Compose f g)"
+  pure = Compose . pure . pure
 -- Implement the (<*>) function for an Applicative instance for Compose
-  (<*>) =
-    error "todo: Course.Compose (<*>)#instance (Compose f g)"
+  (<*>) f x = Compose ((<*>) <$> runCompose f  <*> runCompose x)
 
 instance (Monad f, Monad g) =>
   Monad (Compose f g) where
 -- Implement the (=<<) function for a Monad instance for Compose
-  (=<<) =
-    error "todo: Course.Compose (=<<)#instance (Compose f g)"
+  (=<<) = error "In general, monads cannot be composed"
 
 -- Note that the inner g is Contravariant but the outer f is
 -- Functor. We would not be able to write an instance if both were
@@ -41,5 +41,4 @@ instance (Monad f, Monad g) =>
 instance (Functor f, Contravariant g) =>
   Contravariant (Compose f g) where
 -- Implement the (>$<) function for a Contravariant instance for Compose
-  (>$<) =
-    error "todo: Course.Compose (>$<)#instance (Compose f g)"
+  (>$<) h = Compose . ((<$>) . (>$<) $ h) . runCompose

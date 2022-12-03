@@ -15,6 +15,14 @@ import Course.Functor
 import Course.Applicative
 import Course.Monad
 import Course.List
+    ( Chars,
+      List(..),
+      (++),
+      foldRight,
+      hlist,
+      read,
+      replicate,
+      stringconcat )
 import Course.Optional
 import Data.Char
 
@@ -305,7 +313,12 @@ list pa = list1 pa ||| pure Nil
 list1 :: Parser a -> Parser (List a)
 list1 pa = pa .:. list pa
 
--- Note. The last two functions seem magical, but once you write down the expansion of list1 you realize that it does not recur --forever. This is due to the fact that onResult evaluates the function passed to it iff the ParseResult you pass it as argument is a --Result of something. Since the call to list in list1 happens in that function, then it stops when pa evals to an error.
+--Note. The last two functions seem magical, but once you write
+--down the expansion of list1 you realize that it does not recur
+--forever. This is due to the fact that onResult evaluates the
+--function passed to it iff the ParseResult you pass it as argument is a
+--Result of something. Since the call to list in list1 happens
+--in that function, then it stops when pa evals to an error.
 
 -- | Return a parser that produces one or more space characters
 -- (consuming until the first non-space) but fails if
@@ -377,7 +390,6 @@ sequenceParser = foldRight (.:.) (pure Nil)
 thisMany :: Int -> Parser a -> Parser (List a)
 thisMany n pa = sequenceParser $ replicate n pa
 
-
 -- | This one is done for you.
 --
 -- /Age: positive integer/
@@ -426,7 +438,7 @@ firstNameParser = upper .:. list lower
 -- >>> isErrorResult (parse surnameParser "abc")
 -- True
 surnameParser :: Parser Chars
-surnameParser = upper .:. thisMany 5 lower
+surnameParser = upper .:. lift2 (++) (thisMany 5 lower) (list lower)
 
 -- | Write a parser for Person.smoker.
 --
@@ -443,7 +455,9 @@ surnameParser = upper .:. thisMany 5 lower
 -- >>> isErrorResult (parse smokerParser "abc")
 -- True
 smokerParser :: Parser Bool
-smokerParser = undefined
+smokerParser = (\c -> case c of
+                   'y' -> True
+                   'n' -> False) <$> (is 'y' ||| is 'n')
 
 
 -- | Write part of a parser for Person#phoneBody.
@@ -463,10 +477,8 @@ smokerParser = undefined
 --
 -- >>> parse phoneBodyParser "a123-456"
 -- Result >a123-456< ""
-phoneBodyParser ::
-  Parser Chars
-phoneBodyParser =
-  error "todo: Course.Parser#phoneBodyParser"
+phoneBodyParser :: Parser Chars
+phoneBodyParser = list $ digit ||| is '-' |||  is '.'
 
 -- | Write a parser for Person.phone.
 --
@@ -485,10 +497,8 @@ phoneBodyParser =
 --
 -- >>> isErrorResult (parse phoneParser "a123-456")
 -- True
-phoneParser ::
-  Parser Chars
-phoneParser =
-  error "todo: Course.Parser#phoneParser"
+phoneParser :: Parser Chars
+phoneParser = is '#' *> (digit .:. phoneBodyParser)
 
 -- | Write a parser for Person.
 --
@@ -543,10 +553,14 @@ phoneParser =
 --
 -- >>> parse personParser "123  Fred   Clarkson    y     123-456.789#"
 -- Result >< Person 123 "Fred" "Clarkson" True "123-456.789"
-personParser ::
-  Parser Person
-personParser =
-  error "todo: Course.Parser#personParser"
+personParser :: Parser Person
+personParser = Person <$>
+  ageParser
+  <*>~ firstNameParser
+  <*>~ surnameParser
+  <*>~ smokerParser
+  <*>~ phoneParser
+-- error "todo: Course.Parser#personParser"
 
 -- Make sure all the tests pass!
 
